@@ -7,6 +7,8 @@ use App\Utils\AutentificadorJWT;
 use App\Models\Empleado;
 use App\Models\Fichaje;
 use App\Models\Cuatrimestre;
+use App\Utils\Archivo;
+
 use App\Utils\Re;
 
 class EmpleadoController {

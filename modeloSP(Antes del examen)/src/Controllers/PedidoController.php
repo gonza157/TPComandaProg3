@@ -14,6 +14,7 @@ use App\Models\Bebida;
 use App\Models\Cerveza;
 use App\Models\Encuesta;
 use App\Utils\Re;
+use App\Utils\Archivo;
 
 class PedidoController {
 
@@ -29,14 +30,11 @@ class PedidoController {
         $stringToken = $token[0]; 
                 $data = AutentificadorJWT::ObtenerData($stringToken);
         try{
-            var_dump('p1');
             $selec = $pedido->where('codigo',$pedido->codigo)->first();
                 if(empty($selec) )
                 {
-                    var_dump('p2');
                     if($data->tipo == 'mozo' )
                     {
-                        var_dump('p3');
                         $pedido->codigo = PedidoController::generateRandomTicket();
                         $pedido->idMesa= $req['mesa'];
                         $pedido->estado= 'en preparacion';
@@ -44,6 +42,10 @@ class PedidoController {
                         $pedido->bebida=$req['bebida'];
                         $pedido->cerveza=$req['cerveza'];
                         $pedido->tiempoEstimado=$req['tiempoEstimado'];
+                        if(isset($req['foto']))
+                        {
+                            $resp=Archivo::GuardarImagenConNombre($pedido->codigo);
+                        }
                         MesaController::cambiaEstado($pedido->idMesa,'cliente esperando el pedido');
                         $mesa= Mesa::where('id','=',$req['mesa'])->first();
                         $mesa->usos = $mesa->usos + 1 ;
