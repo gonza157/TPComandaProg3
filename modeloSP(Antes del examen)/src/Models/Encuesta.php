@@ -1,7 +1,7 @@
 <?php
 namespace App\Models;
 
-class Cuatrimestre extends \Illuminate\Database\Eloquent\Model
+Class Encuesta extends \Illuminate\Database\Eloquent\Model
 {
     public $timestamps = false;
 }

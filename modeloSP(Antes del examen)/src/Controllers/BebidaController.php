@@ -38,14 +38,12 @@ class BebidaController {
         $req= $request->getParsedBody();
         $bebida = new Bebida();
         $bebida->id = $args['numero'];
-        //$empleado->email=$req['email'];
         $token =  $request->getHeader('token');
         $stringToken = $token[0]; 
                 $data = AutentificadorJWT::ObtenerData($stringToken);
         $selec = $bebida->where('id',$bebida->id)->first();
         if(!empty($selec))
         {
-            //$selec = $empleado->where('codigo',->codigo)->first();
                 if($data->tipo == 'socio' )
                 {
                     
@@ -85,7 +83,6 @@ class BebidaController {
         $selec = $bebida->where('id',$bebida->id);
         if(!empty($selec))
         {
-            //$selec = $empleado->where('email',$empleado->email)->first();
                 if($data->tipo == 'socio' )
                 {                  
                     $rta = json_encode(array("ok" => $selec->delete()));
@@ -116,23 +113,6 @@ class BebidaController {
         return $bebida->descripcion;       
 
     }
-    
-    // public function devuelveMesaLibre(){
-    //     $mesaLibre=mesa::where('estado','7')->first();
-    //     if(isset($mesaLibre)){
-    //         return $mesaLibre->id;
-    //     }else
-    //     {
-    //         return 0;
-    //     }
-    // }
-
-    // public function cambiaEstado($codMesa,$nuevoEstado)
-    // {
-    //         $mesa=mesa::where('id','=',$codMesa)->first();
-    //         $mesa->estado=$nuevoEstado;
-    //         $mesa->save();
-    // }
     
 
 }

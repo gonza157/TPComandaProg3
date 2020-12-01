@@ -12,6 +12,7 @@ use App\Models\Cuatrimestre;
 use App\Models\Comida;
 use App\Models\Bebida;
 use App\Models\Cerveza;
+use App\Models\Encuesta;
 use App\Utils\Re;
 
 class PedidoController {
@@ -21,17 +22,21 @@ class PedidoController {
     {
         //var_dump($foto);
         $req= $request->getParsedBody();
+        $rta = '';
         $pedido = new Pedido();
         $pedido->codigo=$req['codigo'];
         $token =  $request->getHeader('token');
         $stringToken = $token[0]; 
                 $data = AutentificadorJWT::ObtenerData($stringToken);
         try{
+            var_dump('p1');
             $selec = $pedido->where('codigo',$pedido->codigo)->first();
                 if(empty($selec) )
                 {
-                    if($data->tipo == 'mozo' && $data->estado != 'suspendido')
+                    var_dump('p2');
+                    if($data->tipo == 'mozo' )
                     {
+                        var_dump('p3');
                         $pedido->codigo = PedidoController::generateRandomTicket();
                         $pedido->idMesa= $req['mesa'];
                         $pedido->estado= 'en preparacion';
@@ -44,6 +49,8 @@ class PedidoController {
                         $mesa->usos = $mesa->usos + 1 ;
                         $mesa->save();
                         $rta = json_encode(array("ok" => $pedido->save()));
+                    }else{
+                        $rta = json_encode(array("No puede llevar a cabo esta accion revise su estado actual" ));
                     }
                    
                 }else{
@@ -80,8 +87,7 @@ class PedidoController {
             $selec = $pedido->where('codigo',$pedido->codigo)->first();
             if(!empty($selec))
             {
-                //$selec = $empleado->where('codigo',->codigo)->first();
-                    if($data->tipo == 'socio' || ($data->tipo == 'mozo' && $data->estado != 'suspendido'))
+                    if($data->tipo == 'socio' || ($data->tipo == 'mozo' && $data->estado == 'activo'))
                     {
                         
                         if(isset($req['estado']))
@@ -136,7 +142,6 @@ class PedidoController {
             $selec = $pedido->where('codigo',$pedido->codigo)->first();
             if(!empty($selec))
             {
-                //$selec = $empleado->where('email',$empleado->email)->first();
                     if($data->tipo == 'socio' )
                     {                  
                         $rta = json_encode(array("ok" => $selec->delete()));
@@ -157,11 +162,55 @@ class PedidoController {
         return $response;
     }
 
+    public function PrepararPedido($request,$response,$args){
+        $req= $request->getParsedBody();
+        $pedido= Pedido::where('codigo','=',$req['codigo'])->first();
+        $mesa= Mesa::where('id','=',$pedido->idMesa)->first();
+        $token=$request->getHeader('token');
+        $data=AutentificadorJWT::ObtenerData($token[0]);
+        $precio = 0;
+        $lista = [];
+        if($data->tipo == 'socio' || ($data->tipo == 'mozo' && $data->estado == 'activo'))
+        {
+            if($pedido->comida >= 0)
+            {
+                $pedido->tiempoEstimado = $pedido->tiempoEstimado + 20; 
+                $cocinero = EmpleadoController::CocineroRandom();
+                $cocinero->operaciones = $cocinero->operaciones +1;
+                $cocinero->save();
+            }
+            if($pedido->bebida >= 0)
+            {
+                $pedido->tiempoEstimado = $pedido->tiempoEstimado + 10; 
+                $bartender = EmpleadoController::BartenderRandom();
+                $bartender->operaciones = $bartender->operaciones +1;
+                $bartender->save();
+            }
+            if($pedido->cerveza >= 0)
+            {
+                $pedido->tiempoEstimado = $pedido->tiempoEstimado + 10; 
+                $cervesero = EmpleadoController::CerveseroRandom();
+                $cervesero->operaciones = $cervesero->operaciones +1;
+                $cervesero->save();
+            }
+            $mesa->save();
+            var_dump($mesa->facturacion);
+            MesaController::cambiaEstado($pedido->idMesa,'clientes esperando pedido');
+        }else
+        {
+            $rta=json_encode(array("Faltan permisos para realizar esta solicitud" ));
+        }
+        
+        $rta = json_encode('el pedido esta ciendo preparado');
+        $response->getBody()->write($rta);
+        return $response;
+    }
+
     public function servirPedido($request, $response, $args){
         $req= $request->getParsedBody();
         $token=$request->getHeader('token');
         $data=AutentificadorJWT::ObtenerData($token[0]);
-        if($data->tipo == 'mozo' && $data->estado != 'suspendido'){
+        if($data->tipo == 'mozo' && $data->estado == 'activo'){
             
             $pedido=PedidoController::getPedido($req['codigo']);
             if($pedido->estado == 'en preparacion'){
@@ -184,9 +233,6 @@ class PedidoController {
     }
 
     public function pedirCuenta($request,$response,$args){
-        //busca ticket,
-        //devuelve codigo de ticket, que se consumio y precio total
-        //cambia estado de la mesa
         $req= $request->getParsedBody();
         $pedido= Pedido::where('codigo','=',$req['codigo'])->first();
         $mesa= Mesa::where('id','=',$pedido->idMesa)->first();
@@ -194,8 +240,11 @@ class PedidoController {
         $data=AutentificadorJWT::ObtenerData($token[0]);
         $precio = 0;
         $lista = [];
-        if($data->tipo == 'socio' || ($data->tipo == 'mozo' && $data->estado != 'suspendido'))
+        if($data->tipo == 'socio' || ($data->tipo == 'mozo' && $data->estado == 'activo'))
         {
+            $mozo= Empleado::where('email','=',$data->email)->first();
+            $mozo->operaciones = $mozo->operaciones + 1;
+            $mozo->save();
             if($pedido->comida >= 0)
             {
                 $descripcion = ComidaController::getDescripcion($pedido->comida);
@@ -246,6 +295,7 @@ class PedidoController {
         return $response;
     }
 
+
     public function cobrarPedido($request,$response,$args){
 
         $req= $request->getParsedBody();
@@ -258,6 +308,7 @@ class PedidoController {
             if($pedido!=null){
                 PedidoController::cambiarEstado($req['codigo'],'cobrado');//cobrado
                 MesaController::cambiaEstado($pedido->idMesa,'cerrada');//cerrada
+                EncuestaController::add($req['mesa'],$req['resto'],$req['mozo'],$req['cocinero']);
                 $rta=json_encode(array("El pedido fue cobrado y la mesa cerrada" ));
             }else{
                 $rta=json_encode(array("No se encontro el pedido enviado" ));
@@ -452,6 +503,25 @@ class PedidoController {
         return $response;
     }
 
+    public function PedidosFinalizados(Request $request, Response $response, $args)
+    {
+        $selec = Pedido::get();
+        $lista = [];
+        for ($i=0; $i <$selec->count(); $i++) { 
+            if($selec[$i]->estado == 'pedido servido')
+            {
+                array_push($lista,$selec[$i]->tiempoEstimado);
+                array_push($lista,$selec[$i]->tiempoResolucion);
+                array_push($lista,$selec[$i]->facturacion);
+            }
+        }
+        $rta = json_encode($lista);
+
+        $response->getBody()->write($rta);
+
+        return $response;
+    }
+
     public function cambiarEstado($Codigo,$estado){
 
         $pedido = Pedido::where('codigo',$Codigo)->first();
@@ -476,10 +546,6 @@ class PedidoController {
         return Pedido::where('codigo','=',$codigo)->first();
     }
 
-    // public function getIdProductos($codigo){
-    //     $pedido = Pedido::where('codigo','=',$codigo)->first();
 
-    //     return 
-    // }
     
 }

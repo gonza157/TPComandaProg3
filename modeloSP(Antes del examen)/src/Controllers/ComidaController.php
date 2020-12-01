@@ -38,14 +38,12 @@ public function add(Request $request, Response $response, $args)
         $req= $request->getParsedBody();
         $comida = new Comida();
         $comida->id = $args['numero'];
-        //$empleado->email=$req['email'];
         $token =  $request->getHeader('token');
         $stringToken = $token[0]; 
                 $data = AutentificadorJWT::ObtenerData($stringToken);
         $selec = $comida->where('id',$comida->id)->first();
         if(!empty($selec))
         {
-            //$selec = $empleado->where('codigo',->codigo)->first();
                 if($data->tipo == 'socio' )
                 {
                     
@@ -85,7 +83,6 @@ public function add(Request $request, Response $response, $args)
         $selec = $comida->where('id',$comida->id);
         if(!empty($selec))
         {
-            //$selec = $empleado->where('email',$empleado->email)->first();
                 if($data->tipo == 'socio' )
                 {                  
                     $rta = json_encode(array("ok" => $selec->delete()));
@@ -117,23 +114,6 @@ public function add(Request $request, Response $response, $args)
         $comida = Comida::where('id','=',$id)->first();
         return $comida->descripcion;     
     }
-    
-    // public function devuelveMesaLibre(){
-    //     $mesaLibre=mesa::where('estado','7')->first();
-    //     if(isset($mesaLibre)){
-    //         return $mesaLibre->id;
-    //     }else
-    //     {
-    //         return 0;
-    //     }
-    // }
-
-    // public function cambiaEstado($codMesa,$nuevoEstado)
-    // {
-    //         $mesa=mesa::where('id','=',$codMesa)->first();
-    //         $mesa->estado=$nuevoEstado;
-    //         $mesa->save();
-    // }
     
 
 }

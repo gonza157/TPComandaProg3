@@ -11,30 +11,6 @@ use App\Utils\Re;
 
 class EmpleadoController {
 
-    public function getAll(Request $request, Response $response, $args)
-    {
-        $rta = json_encode(Alumno::all());
-
-        // $response->getBody()->write("Controller");
-        $response->getBody()->write($rta);
-
-        return $response
-        ->withHeader('Content-Type','application/json');
-    }
-
-    public function getId(Request $request, Response $response, $args)
-    {
-        
-        $rta = json_encode("sad");
-
-        // $response->getBody()->write("Controller");
-        $response->getBody()->write($rta);
-
-        return $response
-        ->withHeader('Content-Type','application/json');
-    }
-
-
     public function add(Request $request, Response $response, $args)
     {
         $req= $request->getParsedBody();
@@ -78,7 +54,7 @@ class EmpleadoController {
 
         $selec = $empleado->where('email',$empleado->email)->first();
         if(!empty($selec)){
-            if($selec->clave == $req['clave'] && $selec->estado != 'suspendido')
+            if($selec->clave == $req['clave'] && $selec->estado == 'activo')
             {
                 $Objeto = new \stdClass();
 
@@ -128,7 +104,6 @@ class EmpleadoController {
         $selec = $empleado->where('email',$empleado->email)->first();
         if(!empty($selec))
         {
-            //$selec = $empleado->where('email',$empleado->email)->first();
                 if($data->tipo == 'socio' ||  $data->email == $req['email'])
                 {
                     
@@ -183,10 +158,10 @@ class EmpleadoController {
         $selec = $empleado->where('email',$empleado->email);
         if(!empty($selec))
         {
-            //$selec = $empleado->where('email',$empleado->email)->first();
                 if($data->tipo == 'socio' )
-                {                  
-                    $rta = json_encode(array("ok" => $selec->delete()));
+                {
+                    $selec->estado = 'borrado';                  
+                    $rta = json_encode(array("ok" => $selec->save()));
 
                 }else{
                     $rta = json_encode(array("Error No tienes lo permisos suficientes" ));
@@ -202,7 +177,176 @@ class EmpleadoController {
         return $response;
     }
 
+    public function CocineroRandom()
+    {
+        $selec = Empleado::get();
+        $empleado = new Empleado();
+        $lista = [];
+        if($selec != null)
+        {           
+            
+            for ($i=0; $i <$selec->count(); $i++) { 
+                if($selec[$i]->tipo == 'cocinero')
+                {
+                    $empleado = $selec[$i];
+                    array_push($lista,$empleado);
+                }
+            }
+            $r = mt_rand(1,count($lista));
+            //$empleado = $lista[$r];
+        }       
 
+        return $empleado;
+    }
+
+    public function BartenderRandom()
+    {
+        $selec = Empleado::get();
+        $empleado = new Empleado();
+        $lista = [];
+        if($selec != null)
+        {
+            for ($i=0; $i <$selec->count(); $i++) { 
+                if($selec[$i]->tipo == 'bartender')
+                {
+                    $empleado = $selec[$i];
+                    array_push($lista,$empleado);
+                }
+            }
+            $r = mt_rand(1,count($lista));
+            //$empleado = $lista[$r];
+        }       
+        return $empleado;
+    }
+
+    public function CerveseroRandom()
+    {
+        $selec = Empleado::get();
+        $empleado = new Empleado();
+        $lista = [];
+        if($selec != null)
+        {
+            for ($i=0; $i <$selec->count(); $i++) { 
+                if($selec[$i]->tipo == 'cervesero')
+                {
+                    $empleado = $selec[$i];
+                    array_push($lista,$empleado);
+                }
+            }
+            $r = mt_rand(1,count($lista)); 
+            //$empleado = $lista[$r];
+        }       
+        
+        return $empleado;
+    }
+    
+    public function ListaEmpleados(Request $request, Response $response, $args)
+    {
+        $selec = Empleado::get();
+        $lista = [];
+        for ($i=0; $i <$selec->count(); $i++) { 
+            if($selec[$i]->estado == 'activo')
+            {
+                array_push($lista,$selec[$i]);
+            }
+        }
+        $rta = json_encode($lista);
+
+        $response->getBody()->write($rta);
+
+        return $response;
+    }
+
+    public function ListaEmpleadosSuspendidos(Request $request, Response $response, $args)
+    {
+        $selec = Empleado::get();
+        $lista = [];
+        for ($i=0; $i <$selec->count(); $i++) { 
+            if($selec[$i]->estado == 'suspendido')
+            {
+                array_push($lista,$selec[$i]);
+            }
+        }
+        $rta = json_encode($lista);
+
+        $response->getBody()->write($rta);
+
+        return $response;
+    }
+
+    public function ListaEmpleadosBorrados(Request $request, Response $response, $args)
+    {
+        $selec = Empleado::get();
+        $lista = [];
+        for ($i=0; $i <$selec->count(); $i++) { 
+            if($selec[$i]->estado == 'borrados')
+            {
+                array_push($lista,$selec[$i]);
+            }
+        }
+        $rta = json_encode($lista);
+
+        $response->getBody()->write($rta);
+
+        return $response;
+    }
+
+    public function OperacionesporCocinero(Request $request, Response $response, $args)
+    {
+        $selec = Empleado::get();
+        $lista = [];
+        for ($i=0; $i <$selec->count(); $i++) { 
+            if($selec[$i]->estado == 'activo' && $selec[$i]->tipo == 'cocinero')
+            {
+                array_push($lista,$selec[$i]->email);
+                array_push($lista,'operaciones:');
+                array_push($lista,$selec[$i]->operaciones);
+            }
+        }
+        $rta = json_encode($lista);
+
+        $response->getBody()->write($rta);
+
+        return $response;
+    }
+
+    public function OperacionesporBartender(Request $request, Response $response, $args)
+    {
+        $selec = Empleado::get();
+        $lista = [];
+        for ($i=0; $i <$selec->count(); $i++) { 
+            if($selec[$i]->estado == 'activo' && $selec[$i]->tipo == 'bartender')
+            {
+                array_push($lista,$selec[$i]->email);
+                array_push($lista,'operaciones:');
+                array_push($lista,$selec[$i]->operaciones);
+            }
+        }
+        $rta = json_encode($lista);
+
+        $response->getBody()->write($rta);
+
+        return $response;
+    }
+
+    public function OperacionesporCervesero(Request $request, Response $response, $args)
+    {
+        $selec = Empleado::get();
+        $lista = [];
+        for ($i=0; $i <$selec->count(); $i++) { 
+            if($selec[$i]->estado == 'activo' && $selec[$i]->tipo == 'cervesero')
+            {
+                array_push($lista,$selec[$i]->email);
+                array_push($lista,'operaciones:');
+                array_push($lista,$selec[$i]->operaciones);
+            }
+        }
+        $rta = json_encode($lista);
+
+        $response->getBody()->write($rta);
+
+        return $response;
+    }
 
 
     public function FichajeCompleto(Request $request, Response $response, $args)
@@ -215,43 +359,5 @@ class EmpleadoController {
         return $response;
     }
 
-
-     // public function logout(Request $request, Response $response, $args)
-    // {
-    //     $req= $request->getParsedBody();
-    //     $empleado = new Empleado();
-    //     $empleado->email=$req['email'];
-    //     $fecha = date('Y-m-d');
-
-    //     $selec = $empleado->where('email',$empleado->email)->first();
-    //     if(!empty($selec)){
-    //         var_dump($selec->fecha);
-    //         var_dump($fecha);
-    //         $fichaje = new fichaje();
-    //             $selec2 = $fichaje->where('email',$empleado->email)->first();
-    //             $fichaje = $selec2;
-    //         if($selec->fecha == $fecha)
-    //        {
-    //             $hora = date('H:i:s');
-                
-    //             $fichaje->horaS = $hora; 
-    //             $fichaje->save();
-    //             $rta = Re::Respuesta(1,"salida cargada");
-    //         }else{
-    //         $rta = Re::Respuesta(0,"no coincide la fecha");
-    //        }
-    //             //aca cargo la info del fichaje             
-
-    //     }
-    //     else{
-    //         $rta = Re::Respuesta(0,"Mail no registrado");
-    //     }        
-    //     $response->getBody()->write($rta);
-
-    //     return $response 
-    //     ->withHeader('Content-Type','application/json');
-
-       
-    // }
 
 }

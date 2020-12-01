@@ -39,14 +39,12 @@ class CervezaController {
         $req= $request->getParsedBody();
         $cerveza = new Cerveza();
         $cerveza->id = $args['numero'];
-        //$empleado->email=$req['email'];
         $token =  $request->getHeader('token');
         $stringToken = $token[0]; 
                 $data = AutentificadorJWT::ObtenerData($stringToken);
         $selec = $cerveza->where('id',$cerveza->id)->first();
         if(!empty($selec))
         {
-            //$selec = $empleado->where('codigo',->codigo)->first();
                 if($data->tipo == 'socio' )
                 {
                     
@@ -86,7 +84,6 @@ class CervezaController {
         $selec = $cerveza->where('id',$cerveza->id);
         if(!empty($selec))
         {
-            //$selec = $empleado->where('email',$empleado->email)->first();
                 if($data->tipo == 'socio' )
                 {                  
                     $rta = json_encode(array("ok" => $selec->delete()));

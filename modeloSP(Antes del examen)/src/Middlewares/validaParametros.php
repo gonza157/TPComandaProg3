@@ -12,7 +12,7 @@ use App\Utils\Re;
 
 class  validaParametros{
 
-    public function valParamAlum(Request $request, RequestHandler $handler): Response
+    public function valParamEmpleado(Request $request, RequestHandler $handler): Response
     {
         try{
 
@@ -67,53 +67,20 @@ class  validaParametros{
         ->withHeader('Content-Type','application/json');
     }
 
-    public function valParamAddMascota(Request $request, RequestHandler $handler): Response
+    public function valParamAddPedido(Request $request, RequestHandler $handler): Response
     {
         try{
             $response = new Response();
 
             $req= $request->getParsedBody();
 
-            if(isset($req['nombre']) && isset($req['edad']) ){
+            if(isset($req['mesa']) && isset($req['tiempoEstimado']) ){
 
                 $response = $handler->handle($request);
                 //$existingContent = (string) $response->getBody();
                 //$response->getBody()->write($existingContent);
             }else {
-                $rta ="Debe setear los parametros nombre y edad en el body";
-                $response->getBody()->write( Re::Respuesta(0,$rta));
-            }
-            
-        }
-        catch(Exception $e){
-            $response->getBody()->write(  Re::Respuesta(0,"error = >".$e->getMessage()));
-        }
-        
-        return $response
-        ->withHeader('Content-Type','application/json');
-    }
-
-
-    public function valParamAddTurno(Request $request, RequestHandler $handler): Response
-    {
-        try{
-            $response = new Response();
-
-            $req= $request->getParsedBody();
-
-            if(isset($req['id_mascota']) && isset($req['fecha']) && isset($req['hora']) && isset($req['id_veterinario']) ){
-                $tiempo = explode(":", $req['hora']);
-                if (($tiempo[0] >= 9 || $tiempo[0] <= 17) && ($tiempo[1] == 00 || $tiempo[1] == 30) && !($tiempo[0] == 17 && $tiempo[1] == 30)) {
-
-                    $response = $handler->handle($request);
-                    
-                }else{
-                    $response->getBody()->write(Re::Respuesta(0, "Los turnos son de 9 a 17 y tienen un periodo de 30 minutos cada uno"));
-                }
-                //$existingContent = (string) $response->getBody();
-                //$response->getBody()->write($existingContent);
-            }else {
-                $rta ="Debe setear los parametros id_mascota, fecha, hora y id_veterinario en el body";
+                $rta ="Debe setear los parametros tiempo estimado y mesa en el body";
                 $response->getBody()->write( Re::Respuesta(0,$rta));
             }
             

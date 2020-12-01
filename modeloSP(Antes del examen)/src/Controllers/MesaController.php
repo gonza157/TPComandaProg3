@@ -12,30 +12,6 @@ use App\Utils\Re;
 
 class MesaController {
 
-    public function getAll(Request $request, Response $response, $args)
-    {
-        $rta = json_encode(Alumno::all());
-
-        // $response->getBody()->write("Controller");
-        $response->getBody()->write($rta);
-
-        return $response
-        ->withHeader('Content-Type','application/json');
-    }
-
-    public function getId(Request $request, Response $response, $args)
-    {
-        
-        $rta = json_encode("sad");
-
-        // $response->getBody()->write("Controller");
-        $response->getBody()->write($rta);
-
-        return $response
-        ->withHeader('Content-Type','application/json');
-    }
-
-
     public function add(Request $request, Response $response, $args)
     {
         $mesa = new Mesa();
@@ -57,14 +33,12 @@ class MesaController {
         $req= $request->getParsedBody();
         $mesa = new Mesa();
         $mesa->id = $args['idMesa'];
-        //$empleado->email=$req['email'];
         $token =  $request->getHeader('token');
         $stringToken = $token[0]; 
                 $data = AutentificadorJWT::ObtenerData($stringToken);
         $selec = $mesa->where('id',$mesa->id)->first();
         if(!empty($selec))
         {
-            //$selec = $empleado->where('codigo',->codigo)->first();
                 if($data->tipo == 'socio' )
                 {
                     
@@ -116,7 +90,6 @@ class MesaController {
         $selec = $mesa->where('id',$mesa->id);
         if(!empty($selec))
         {
-            //$selec = $empleado->where('email',$empleado->email)->first();
                 if($data->tipo == 'socio' )
                 {                  
                     $rta = json_encode(array("ok" => $selec->delete()));
@@ -273,14 +246,4 @@ class MesaController {
             $mesa->save();
     }
 
-
-        public function FichajeCompleto(Request $request, Response $response, $args)
-        {
-            $selec = $fichaje = Fichaje::get();
-            $rta = json_encode($selec);
-
-            $response->getBody()->write($rta);
-
-            return $response;
-        }
 }
